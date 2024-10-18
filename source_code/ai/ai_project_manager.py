@@ -1,5 +1,5 @@
 """
-Klasse AI_Project_Manager abgeleitet von AI_Agent.
+Klasse AI_ProjectManager abgeleitet von AI_Agent.
 """
 
 import ai_interface
@@ -11,10 +11,10 @@ from prompts.project_manager import ProjectManagerPrompts
 
 
 
-class AI_Project_Manager(AI_Agent):
+class AI_ProjectManager(AI_Agent):
     
     name = "Alex"
-    role = "Projektmanager"
+    role = "projekt manager"
     role_ID = "project_manager"
     prompts = ProjectManagerPrompts
     role_description = prompts.role_description

@@ -35,6 +35,7 @@ The following files are open:
 
     next_prompt = """
 {a_computer_message}
+{a_search_results}
 {a_computer_question}
 {a_received_message}
 
@@ -43,13 +44,18 @@ The computer is waiting for further input.
 
     a_explanation_computer = """
 You are working on a computer with an integrated AI. The computer reads all your notes. You can address the computer and give it tasks to perform for you. These are the computer's capabilities:
-- Display and close files. (It is recommended to close open files that you no longer need.)
+- Display and close files. (It is recommended to close open files that you no longer need. You can keep the files open while you edit them to see the changes in real-time.)
 - Create and edit files. The computer can also execute intelligent instructions, such as "Replace the implementation of function X with the code XYZ".
 - Delete, move, and copy files.
 - Search and filter files. (by file names or file contents)
 - Expand and collapse directories in the directory tree.
 - Write a message to another employee. Mention the name (not the role) of the employee and the content of the message. Unfortunately, you cannot send multiple messages to multiple users at the same time, but must wait for a response after each message.
 The computer does not make decisions for you. You decide which actions the computer should perform and explicitly request it to do so.
+Tell the computer directly what to do. Here some examples:
+- Computer, open the file 'file.txt'.
+- Computer, expand the folder 'path/folder'.
+- Computer, write following message to <name>:\\n...
+- Computer, append this content to the file 'path/file.txt':\\n...
 
 You have a home directory (accessible via ~/) where you can create and edit any private files.
 You can edit the file ~/autorun.json if you want to adjust which files are opened and which folders are expanded when the computer starts.
@@ -68,4 +74,9 @@ The computer displays the following messages:
     a_computer_question = """ 
 The computer asks a question:
 {computer_question}
+"""
+
+    a_search_results = """
+The computer found the following search results:
+{search_results}
 """

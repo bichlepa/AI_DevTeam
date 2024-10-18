@@ -8,6 +8,9 @@ import ai.user as user
 import ai.ai_computer as ai_computer
 import ai.ai_project_manager as ai_project_manager
 import ai.ai_developer as ai_developer
+import ai.ai_requirements_engineer as ai_requirements_engineer
+import ai.ai_test_engineer as ai_test_engineer
+import ai.ai_architect as ai_architect
 
 # Configure logging
 os.makedirs("log", exist_ok=True)
@@ -24,11 +27,12 @@ def main():
     }
 
     # Alle AI-Agenten durchgehen
-    all_agent_classes = [ai_computer.AI_Computer, user.AI_User, ai_project_manager.AI_Project_Manager, ai_developer.AI_Developer]
+    all_agent_classes = [ai_computer.AI_Computer, user.AI_User, ai_project_manager.AI_ProjectManager, ai_developer.AI_Developer, ai_requirements_engineer.AI_RequirementsEngineer, ai_test_engineer.AI_TestEngineer, ai_architect.AI_Architect]
     # Infos zu allen Agenten sammeln und einen String erstellen, mit allen Rollenbeschreibungen
     roles_text = ""
     for agent in all_agent_classes:
-        roles_text += agent.name + ", " + agent.role + ": " + agent.role_description + "\n"
+        if not agent.skip_in_role_list:
+            roles_text += agent.name + ", " + agent.role + ": " + agent.role_description + "\n"
     data["all_role_descriptions"] = roles_text
     # Alle Agenten initialisieren
     all_agents = []

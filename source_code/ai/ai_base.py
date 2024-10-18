@@ -20,6 +20,8 @@ class AI_Agent:
 
         # Home-Verzeichnis der KI = Projektverzeichnis / self.role_ID
         self.home_dir = os.path.join("ai_homes" , self.role_ID)
+        # Verzeichnis erstellen
+        os.makedirs(os.path.join(config.PROJECT_DIR, self.home_dir), exist_ok=True)
 
         self.data = data
         self.data["name"] = self.name
@@ -149,6 +151,8 @@ class AI_Agent:
             data["a_computer_message"] = ""
         if not data.get("computer_question", ""):
             data["a_computer_question"] = ""
+        if not data.get("search_results", ""):
+            data["a_search_results"] = ""
         if not data.get("answer_to_question", ""):
             data["a_answer_to_question"] = ""
         

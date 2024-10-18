@@ -13,7 +13,7 @@ from prompts.developer import DeveloperPrompts
 
 class AI_Developer(AI_Agent):
     name = "Louis"
-    role = "Entwickler"
+    role = "developer"
     role_ID = "developer"
     prompts = DeveloperPrompts
     role_description = prompts.role_description

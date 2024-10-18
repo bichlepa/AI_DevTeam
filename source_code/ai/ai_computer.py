@@ -60,22 +60,25 @@ class AI_Computer(AI_Agent):
         iterations = 0
         while iterations < max_iterations:
             # Nachricht an den Agenten senden
-            data["current_receiver"] = data["next_receiver"]
-            data["current_sender"] = data["next_sender"]
-            data["received_message"] = data["next_message"]
+            if (data["next_receiver"]):
+                data["current_receiver"] = data["next_receiver"]
+                data["current_sender"] = data["next_sender"]
+                data["received_message"] = data["next_message"]
 
-            if data["current_sender"] == "System":
-                current_sender_agent = None
-                data["message_sender_name"] = "System"
-                data["message_sender_role"] = "System"
+                if data["current_sender"] == "System":
+                    current_sender_agent = None
+                    data["message_sender_name"] = "System"
+                    data["message_sender_role"] = "System"
+                else:
+                    current_sender_agent = self.data["all_agents_by_name"][data["current_sender"]]
+                    data["message_sender_name"] = current_sender_agent.name
+                    data["message_sender_role"] = current_sender_agent.role
+                    
+                current_reiceiver_agent = self.data["all_agents_by_name"][data["current_receiver"]]
+                data["message_receiver_name"] = current_reiceiver_agent.name
+                data["message_receiver_role"] = current_reiceiver_agent.role
             else:
-                current_sender_agent = self.data["all_agents_by_name"][data["current_sender"]]
-                data["message_sender_name"] = current_sender_agent.name
-                data["message_sender_role"] = current_sender_agent.role
-                
-            current_reiceiver_agent = self.data["all_agents_by_name"][data["current_receiver"]]
-            data["message_receiver_name"] = current_reiceiver_agent.name
-            data["message_receiver_role"] = current_reiceiver_agent.role
+                data["received_message"] = None
 
             response = current_reiceiver_agent.next_step(data)
             data["next_sender"] = None
@@ -117,19 +120,56 @@ class AI_Computer(AI_Agent):
 
                 # Infos vorbereiten
                 home_dir = current_reiceiver_agent.get_home_dir()
-                data["question"] = None
+                data["computer_question"] = None
                 data["answer_to_question"] = None
+                data["search_results"] = None
 
                 # Aktionen durchführen (wie in computer.py definiert)
                 action_results = []
                 for action in allActions:
-                    if action["name"] == "view_file":
+                    if action["name"] == "expand_folder":
+                        # Liste der geöffneten Ordner im Agenten aktualisieren
+                        filelist = current_reiceiver_agent.get_data("expanded_folders")
+                        # Trailingslash entfernen
+                        folder_path = action["parameters"]["folder_path"]
+                        if folder_path.endswith("/"):
+                            folder_path = folder_path[:-1]
+                        # prüfen ob nicht schon geöffnet
+                        if folder_path not in filelist:
+                            # Prüfen ob Ordner existiert
+                            if file.folder_exists(home_dir, folder_path):
+                                filelist.append(folder_path)
+                                action_results.append(f"Folder {folder_path} expanded.")
+                            else:
+                                action_results.append(f"Folder {folder_path} does not exist.")
+                        else:
+                            action_results.append(f"Folder {folder_path} is already expanded.")
+                        current_reiceiver_agent.update_data({"expanded_folders": filelist})
+                    elif action["name"] == "collapse_folder":
+                        # Liste der geöffneten Ordner im Agenten aktualisieren
+                        filelist = current_reiceiver_agent.get_data("expanded_folders")
+                        # Trailingslash entfernen
+                        folder_path = action["parameters"]["folder_path"]
+                        if folder_path.endswith("/"):
+                            folder_path = folder_path[:-1]
+                        # prüfen ob geöffnet
+                        if folder_path in filelist:
+                            action_results.append(f"Folder {folder_path} collapsed.")
+                            filelist.remove(folder_path)
+                        else:
+                            action_results.append(f"Folder {folder_path} was not expanded.")
+                        current_reiceiver_agent.update_data({"expanded_folders": filelist})
+                    elif action["name"] == "view_file":
                         # Liste geöffneter Dateien im Agenten aktualisieren
                         filelist = current_reiceiver_agent.get_data("opened_files")
                         # prüfen ob nicht schon geöffnet
                         if action["parameters"]["file_path"] not in filelist:
-                            filelist.append(action["parameters"]["file_path"])
-                            action_results.append(f"File {action['parameters']['file_path']} opened.")
+                            # prüfen ob Datei existiert
+                            if file.file_exists(home_dir, action["parameters"]["file_path"]):
+                                filelist.append(action["parameters"]["file_path"])
+                                action_results.append(f"File {action['parameters']['file_path']} opened.")
+                            else:
+                                action_results.append(f"File {action['parameters']['file_path']} does not exist.")
                         else:
                             action_results.append(f"File {action['parameters']['file_path']} is already open.")
                         current_reiceiver_agent.update_data({"opened_files": filelist})
@@ -146,14 +186,14 @@ class AI_Computer(AI_Agent):
                     elif action["name"] == "write_file":
                         # Datei schreiben
                         result = file.write_file(home_dir, action["parameters"]["file_path"], action["content"])
-                        if result:
+                        if result.get("success", False):
                             action_results.append(f"File {action['parameters']['file_path']} written.")
                         else:
-                            action_results.append(f"File {action['parameters']['file_path']} could not be written.")
+                            action_results.append(f"File {action['parameters']['file_path']} could not be written. Error: {result.get('error', 'unknown')}")
                     elif action["name"] == "create_folder":
                         # Ordner erstellen
                         result = file.create_folder(home_dir, action["parameters"]["folder_path"])
-                        if result["success"]:
+                        if result:
                             action_results.append(f"Folder {action['parameters']['folder_path']} created.")
                         else:
                             action_results.append(f"Folder {action['parameters']['folder_path']} could not be created.")
@@ -172,12 +212,16 @@ class AI_Computer(AI_Agent):
                         # Datei kopieren
                         #file.copy_file(home_dir, action["parameters"]["source_path"], action["parameters"]["target_path"])
                         pass
-                    elif action["name"] == "search_files":
+                    elif action["name"] == "search_file_content":
                         # Dateien suchen
-                        #files = file.search_files(home_dir, action["parameters"]["search_string"])
-                        #current_reiceiver_agent.update_data({"search_results": files})
-                        #todo
-                        pass
+                        search_results = file.search_file_content(home_dir, action["parameters"]["folder_path"], action["parameters"]["search_string"], action["parameters"].get("use_regex", False), action["parameters"].get("whole_word", False), action["parameters"].get("case_sensitive", False), action["parameters"].get("file_mask", "*"))
+                        data["search_results"] = search_results
+                        action_results.append(f"Files found: {', '.join(search_results)}")
+                    elif action["name"] == "search_file_name":
+                        # Dateien suchen
+                        search_results = file.search_file_name(home_dir, action["parameters"]["folder_path"], action["parameters"]["file_mask"], action["parameters"].get("find_files", True), action["parameters"].get("find_folders", False))
+                        data["search_results"] = search_results
+                        action_results.append(f"Files found: {', '.join(search_results)}")
                     elif action["name"] == "send_message":
                         # Nachricht an ein Teammitglied speichern. Sie wird bei der nächsten Iteration gesendet.
                         # Es kann nur eine Nachricht auf einmal gespeichert werden
@@ -209,18 +253,24 @@ class AI_Computer(AI_Agent):
                         # Computer-KI-Meldung nachher an KI-Agenten senden
                         data["computer_message"] = action["content"]
                 
+                # Wenn keine Aktion gefunden wurde, diese Info in action_results speichern
+                if not allActions:
+                    action_results.append("No actions found.")
+
                 # Wenn nicht beendet, nächste Iteration vorbereiten
                 if not ai_finished:
                     if (data["computer_question"]):
                         # Frage an den Agenten stellen
-                        data["received_message"] = "" # Damit die Nachricht nicht doppelt angezeigt wird
+                        data["received_message"] = None # Damit die Nachricht nicht doppelt angezeigt wird
                         prompt_data = data.copy()
                         response = current_reiceiver_agent.next_step(prompt_data)
-                        data["answer_to_question"] = response
+                        prompt_data["action_results"] = action_results
+                        prompt_data["answer_to_question"] = response
                         action_results.append(f"Answer to question received.")
+                        prompt = self._build_next_prompt(prompt_data)
                     else:
                         # Nächsten Prompt für die KI bauen
-                        prompt_data = data
+                        prompt_data = data.copy()
                         prompt_data["action_results"] = action_results
                         prompt = self._build_next_prompt(prompt_data)
                     iterations += 1
@@ -285,13 +335,15 @@ class AI_Computer(AI_Agent):
             elif state == "expecting parameters":
                 if line.startswith("## parameters"):
                     state = "parsing parameters"
+                elif line.startswith("## content"):
+                    state = "parsing content"
                 else:
-                    # Keine Parameter gefunden, weiter suchen
+                    # Keine Parameter oder Content gefunden, weiter suchen
                     state = "searching codeblock"
             elif state == "parsing parameters":
                 if line.startswith("```"):
                     state = "searching codeblock"
-                if line.startswith("## content"):
+                elif line.startswith("## content"):
                     state = "parsing content"
                 else:
                     parts = line.split(": ")
@@ -303,7 +355,7 @@ class AI_Computer(AI_Agent):
                 else:
                     actionContent += line + "\n"
         
-            if state == "searching codeblock" and actionName and actionPars:
+            if state == "searching codeblock" and actionName:
                 results.append({"name": actionName, "parameters": actionPars, "content": actionContent})
 
             current_line += 1

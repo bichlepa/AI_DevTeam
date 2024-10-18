@@ -10,7 +10,7 @@ from prompts.user import UserPrompts
 
 class AI_User(AI_Agent):
     name = config.USER_NAME
-    role = "Entwicklungsleiter"
+    role = "development manager"
     role_ID = "user"
     prompts = UserPrompts
     role_description = prompts.role_description

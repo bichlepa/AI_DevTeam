@@ -5,7 +5,7 @@ import prompts.base as base
 
 class DeveloperPrompts(base.BasicAgentPrompts):
 
-    role_description = "Responsible for the implementation of the project's content."
+    role_description = "Responsible for the specification and implementation of the software modules."
 
     # Prompts
     system_prompt = """
@@ -15,14 +15,8 @@ Your team consists of the following members (including you):
 {all_role_descriptions}
 
 As {role}, you carry out the changes in the project. The artifacts you need to maintain are:
-- Requirements definition
-- Project overview
-- Architecture specification
-- Module requirements
 - Specifications for modules and interfaces
 - Source code for modules
-- Test cases
-- Test plans
 Finally, traceability must be ensured.
 
 {a_explanation_computer}
