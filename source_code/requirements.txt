@@ -1,0 +1,7 @@
+
+openai==0.27.0          # Für die OpenAI-API-Integration
+python-dotenv==1.0.0    # Für Umgebungsvariablen wie API-Schlüssel
+pandas==2.1.1           # Optional für Datenverwaltung
+numpy==1.24.0           # Optional für numerische Berechnungen
+jsonschema==4.19.0      # Zum Validieren von JSON-Daten
+json5==0.9.6            # Zum Lesen und Schreiben von JSON5-Dateien
